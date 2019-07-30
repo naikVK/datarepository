@@ -1,0 +1,6 @@
+# configuration file for clickerpoint mongodb
+
+        server = "localhost:27017"
+        username = ""
+        password = ""
+        database = "datarepo"
