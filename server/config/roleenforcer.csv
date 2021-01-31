@@ -1,2 +1,0 @@
-admin, GetProgramsMaster, POST, true
-*, GetProgramsMaster, POST, false
