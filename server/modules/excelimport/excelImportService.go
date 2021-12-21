@@ -2,6 +2,7 @@ package excelimport
 
 import (
 	"datarepository/server/models"
+	"errors"
 	"io"
 	"mime/multipart"
 	"os"
@@ -12,11 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/errormdl"
-
 	"github.com/tealeg/xlsx"
-
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/filemdl"
 )
 
 // ImportContactsService -
@@ -40,9 +37,8 @@ func readPresonContactsFromFile(importedFilePath string) ([]models.PersonContact
 		return personContactList, err
 	}
 	if len(xlsFile.Sheets) == 0 && len(xlsFile.Sheets[0].Rows) > 2 {
-		return personContactList, errormdl.Wrap("no data to import")
+		return personContactList, errors.New("no data to import")
 	}
-
 	// loggermdl.LogDebug("len ", len(xlsFile.Sheets[0].Rows))
 	for _, row := range xlsFile.Sheets[0].Rows[1:] {
 		person := &models.PersonContactDetails{}
@@ -59,7 +55,7 @@ func saveFileInDir(excelFileHeader *multipart.FileHeader) (string, error) {
 	timestamp := time.Now().Unix()
 
 	destFilePath := filepath.Join(models.Config.DataRepo, strconv.FormatInt(timestamp, 10)+excelFileHeader.Filename)
-	err := filemdl.CreateDirectoryRecursive(models.Config.DataRepo)
+	err := os.MkdirAll(models.Config.DataRepo, os.ModePerm)
 	if err != nil {
 		return destFilePath, err
 	}
@@ -82,7 +78,7 @@ func saveFileInDir(excelFileHeader *multipart.FileHeader) (string, error) {
 }
 
 // SearchPersonContactService -
-func SearchPersonContactService(searchOption models.SearchOption) ([]models.PersonContactDetails, error) {
+func SearchPersonContactService(searchOption models.SearchOption) (models.ContactResponse, error) {
 	query := bson.D{}
 	switch searchOption.SearchBy {
 	case "Name":
@@ -93,6 +89,8 @@ func SearchPersonContactService(searchOption models.SearchOption) ([]models.Pers
 		query = bson.D{{"mobile", primitive.Regex{Pattern: searchOption.SearchText, Options: "i"}}}
 	case "Tags":
 		query = bson.D{{"tags", primitive.Regex{Pattern: searchOption.SearchText, Options: "i"}}}
+	case "Remark":
+		query = bson.D{{"dob", primitive.Regex{Pattern: searchOption.SearchText, Options: "i"}}}
 	}
 
 	paginate := searchOption.Paginate

@@ -2,12 +2,11 @@ package dbhelper
 
 import (
 	"context"
+	"datarepository/server/helper"
+	"datarepository/server/helper/loggermdl"
 	"sync"
 	"time"
 
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/configmdl"
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/errormdl"
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/loggermdl"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -46,12 +45,13 @@ func Init(tomlFilepath, hostName string) error {
 	once.Do(func() {
 		defer mutex.Unlock()
 		mutex.Lock()
-		_, err := configmdl.InitConfig(tomlFilepath, &hostDetails)
-		if errormdl.CheckErr(err) != nil {
+		_, err := helper.InitConfig(tomlFilepath, &hostDetails)
+		if err != nil {
 			loggermdl.LogError(err)
 			sessionError = err
 			return
 		}
+
 		var authCredentials *options.Credential
 		// loggermdl.LogDebug(hostDetails.Password)
 		if len(hostDetails.Password) > 0 {

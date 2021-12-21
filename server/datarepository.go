@@ -1,6 +1,8 @@
 package main
 
 import (
+	"datarepository/server/helper"
+	"datarepository/server/helper/loggermdl"
 	"datarepository/server/models"
 	"fmt"
 	"net/http"
@@ -12,11 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/configmdl"
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/errormdl"
 	"go.uber.org/zap/zapcore"
-
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/loggermdl"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,8 +40,8 @@ func main() {
 // InitAll -
 func InitAll(ginEngine *gin.Engine) error {
 	loggermdl.Init("logs/datarepository.log", 0, 1, 0, zapcore.DebugLevel)
-	_, err := configmdl.InitConfig("config/config.toml", &models.Config)
-	if errormdl.CheckErr(err) != nil {
+	_, err := helper.InitConfig("config/config.toml", &models.Config)
+	if err != nil {
 		loggermdl.LogError(err)
 		return err
 	}
@@ -54,7 +52,7 @@ func InitAll(ginEngine *gin.Engine) error {
 	dbhelper.Init(filepath.Join(configDirPath, "mongo-config.toml"), "dataRepoHost")
 	ginEngine.Use(CORSMiddleware())
 	openRouteGroup := ginEngine.Group("o")
-	ginEngine.StaticFS("/", http.Dir("client/dist"))
+	ginEngine.StaticFS("/", http.Dir("../dist"))
 	modules.Init(openRouteGroup)
 	loggermdl.LogDebug("appport", models.Config.AppPort)
 	openbrowser("http://localhost:" + models.Config.AppPort)
