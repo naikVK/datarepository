@@ -1,10 +1,11 @@
 package excelimport
 
 import (
+	"datarepository/server/helper/loggermdl"
 	"datarepository/server/models"
 	"net/http"
+	"strings"
 
-	"corelab.mkcl.org/MKCLOS/coredevelopmentplatform/corepkgv2/loggermdl"
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,13 +53,24 @@ func SearchContactRoute(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "bad request")
 		return
 	}
-	personList, err := SearchPersonContactService(searchOption)
+
+	searchOption = updateSearchOptionForDateSearch(searchOption)
+	contactResponse, err := SearchPersonContactService(searchOption)
 	if err != nil {
 		loggermdl.LogError(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, personList)
+	c.JSON(http.StatusOK, contactResponse)
 	return
 	// loggermdl.LogDebug(paginate)
+}
+
+func updateSearchOptionForDateSearch(searchOption models.SearchOption) models.SearchOption {
+	if searchOption.SearchBy == "Remark" {
+		if strings.HasPrefix(searchOption.SearchText, "dob:") {
+			searchOption.SearchText = strings.TrimPrefix(searchOption.SearchText, "dob:")
+		}
+	}
+	return searchOption
 }

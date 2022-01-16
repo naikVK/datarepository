@@ -1,6 +1,6 @@
 .DS_Store
 /client/app/node_modules
-/client/app/dist
+/client/dist
 /client/localClicker/node_modules
 /client/localClicker/dist
 /client/clickercloud/node_modules
